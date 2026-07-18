@@ -11,17 +11,18 @@ namespace BadAPI.Data.Entities
     public class Product
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
+
+        public string InternalCode { get; set; } = Guid.NewGuid().ToString();
 
         public Guid CategoryId { get; set; }
 
-        //nav
         [JsonIgnore]
-        public Category? Category { get; set; } = null!;
+        public Category? Category { get; set; }
 
-        [NotMapped]
-        public string InternalCode { get; set; } = string.Empty;
-        public string CategoryName { get; set; } = string.Empty;
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }
