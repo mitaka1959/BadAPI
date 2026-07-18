@@ -59,5 +59,10 @@ namespace BadAPI.Data.Repositories
         {
             return await _dbSet.Where(predicate).ToListAsync();
         }
+
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.AnyAsync(predicate);
+        }
     }
 }
