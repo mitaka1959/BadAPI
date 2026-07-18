@@ -19,5 +19,7 @@ namespace BadAPI.Data.Repositories
         Task DeleteAsync(Guid id);
 
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
+
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
     }
 }

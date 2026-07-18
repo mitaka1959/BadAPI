@@ -15,15 +15,18 @@ namespace BadApi.Services
     {
         private readonly IRepository<Product> _productRepo;
         private readonly IRepository<Category> _categoryRepo;
+        private readonly IRepository<Review> _reviewRepo;
         private readonly IUnitOfWork _unitOfWork;
 
         public ProductService(
             IRepository<Product> productRepo,
             IRepository<Category> categoryRepo,
+            IRepository<Review> reviewRepo,
             IUnitOfWork unitOfWork)
         {
             _productRepo = productRepo;
             _categoryRepo = categoryRepo;
+            _reviewRepo = reviewRepo;
             _unitOfWork = unitOfWork;
         }
 
@@ -63,8 +66,13 @@ namespace BadApi.Services
             if (product == null)
                 return Result.NotFound("Product not found.");
 
-            if (product.Price > 100)
-                return Result.Conflict("Cannot delete expensive products.");
+            if (product.Price > 50m)
+                return Result.Conflict(
+                    $"Product cannot be deleted: its price (${product.Price:0.##}) exceeds the $50 limit.");
+
+            if (await _reviewRepo.AnyAsync(r => r.ProductId == id))
+                return Result.Conflict(
+                    "Product cannot be deleted because it has customer reviews.");
 
             await _productRepo.DeleteAsync(id);
             await _unitOfWork.CompleteAsync();
