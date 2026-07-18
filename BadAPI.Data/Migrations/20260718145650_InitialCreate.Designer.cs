@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BadAPI.Data.Migrations
 {
     [DbContext(typeof(BadDbContext))]
-    [Migration("20260718131252_InitialCreate")]
+    [Migration("20260718145650_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -53,7 +53,7 @@ namespace BadAPI.Data.Migrations
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CategoryName")
+                    b.Property<string>("InternalCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -71,6 +71,36 @@ namespace BadAPI.Data.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("BadAPI.Data.Entities.Review", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReviewerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Review");
+                });
+
             modelBuilder.Entity("BadAPI.Data.Entities.Product", b =>
                 {
                     b.HasOne("BadAPI.Data.Entities.Category", "Category")
@@ -80,6 +110,22 @@ namespace BadAPI.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("BadAPI.Data.Entities.Review", b =>
+                {
+                    b.HasOne("BadAPI.Data.Entities.Product", "Product")
+                        .WithMany("Reviews")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("BadAPI.Data.Entities.Product", b =>
+                {
+                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

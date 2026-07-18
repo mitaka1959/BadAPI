@@ -1,6 +1,6 @@
 ﻿using BadApi.Data;
-using BadApi.Repositories;
 using BadApi.Services;
+using BadAPI.Controllers;
 using BadAPI.Data.Entities;
 using BadAPI.DTOs;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +14,10 @@ namespace BadApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CategoriesController : ControllerBase
+    public class CategoriesController : ApiControllerBase
     {
         private readonly CategoryService _service;
 
-       
         public CategoriesController(CategoryService service)
         {
             _service = service;
@@ -27,30 +26,26 @@ namespace BadApi.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            
             var categories = await _service.GetCategoriesAsync();
-
-            return Ok(categories);
+            return Ok(categories.Select(ToReadDto));
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] CategoryCreateDto dto)
         {
-        
-            var newCategory = new Category
-            {
-                Name = dto.Name,
-                Description = dto.Description
-            };
+            var result = await _service.AddCategoryAsync(dto.Name, dto.Description);
+            if (!result.IsSuccess)
+                return HandleFailure(result);
 
-            var result = await _service.AddCategoryAsync(newCategory);
-
-            if (result == "Category added")
-            {
-                return Ok(new { message = result });
-            }
-
-            return BadRequest(new { message = result });
+            var read = ToReadDto(result.Value!);
+            return CreatedAtAction(nameof(Get), new { id = read.Id }, read);
         }
+
+        private static CategoryReadDto ToReadDto(Category c) => new()
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Description = c.Description
+        };
     }
 }

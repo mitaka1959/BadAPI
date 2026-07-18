@@ -12,6 +12,7 @@ namespace BadApi.Data
     {
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<Category> Categories { get; set; } = null!;
+        public DbSet<Review> Reviews { get; set; } = null!;
 
         public BadDbContext(DbContextOptions<BadDbContext> options)
             : base(options)
@@ -21,10 +22,7 @@ namespace BadApi.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<Product>()
-                .Property(p => p.Price)
-                .HasColumnType("decimal(18,2)");
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(BadDbContext).Assembly);
         }
     }
 }

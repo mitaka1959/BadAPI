@@ -1,6 +1,6 @@
 ﻿using BadApi.Data;
-using BadApi.Repositories;
 using BadApi.Services;
+using BadAPI.Controllers;
 using BadAPI.Data.Entities;
 using BadAPI.DTOs;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +14,7 @@ namespace BadApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductsController : ControllerBase
+    public class ProductsController : ApiControllerBase
     {
         private readonly ProductService _service;
 
@@ -27,41 +27,33 @@ namespace BadApi.Controllers
         public async Task<IActionResult> Get()
         {
             var products = await _service.GetProductsAsync();
-            return Ok(products); 
+            return Ok(products.Select(ToReadDto));
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ProductCreateDto dto)
         {
-            var newProduct = new Product
-            {
-                Name = dto.Name,
-                Price = dto.Price,
-                CategoryName = dto.CategoryName
-            };
+            var result = await _service.AddProductAsync(dto.Name, dto.Price, dto.CategoryName);
+            if (!result.IsSuccess)
+                return HandleFailure(result);
 
-            var result = await _service.AddProductAsync(newProduct);
-
-            if (result == "Product added successfully")
-            {
-                return Ok(new { message = result });
-            }
-
-            return BadRequest(new { message = result });
+            var read = ToReadDto(result.Value!);
+            return CreatedAtAction(nameof(Get), new { id = read.Id }, read);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _service.DeleteProductAsync(id);
-
-            if (result == "Deleted")
-                return Ok(new { message = result });
-
-            if (result == "Product not found")
-                return NotFound(new { message = result }); 
-
-            return BadRequest(new { message = result });
+            return result.IsSuccess ? NoContent() : HandleFailure(result);
         }
+
+        private static ProductReadDto ToReadDto(Product p) => new()
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Price = p.Price,
+            CategoryId = p.CategoryId
+        };
     }
 }

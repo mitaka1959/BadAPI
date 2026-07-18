@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BadAPI.Data.Repositories
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork
     {
         Task<int> CompleteAsync();
     }

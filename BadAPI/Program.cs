@@ -2,6 +2,7 @@ using BadApi.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -11,6 +12,7 @@ builder.Services.AddScoped(typeof(BadAPI.Data.Repositories.IRepository<>), typeo
 builder.Services.AddScoped<BadAPI.Data.Repositories.IUnitOfWork, BadAPI.Data.Repositories.UnitOfWork>();
 builder.Services.AddScoped<BadApi.Services.ProductService>();
 builder.Services.AddScoped<BadApi.Services.CategoryService>();
+builder.Services.AddScoped<BadAPI.Services.ReviewService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
