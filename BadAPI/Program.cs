@@ -7,6 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<BadDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped(typeof(BadAPI.Data.Repositories.IRepository<>), typeof(BadAPI.Data.Repositories.Repository<>));
+builder.Services.AddScoped<BadAPI.Data.Repositories.IUnitOfWork, BadAPI.Data.Repositories.UnitOfWork>();
+builder.Services.AddScoped<BadApi.Services.ProductService>();
+builder.Services.AddScoped<BadApi.Services.CategoryService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

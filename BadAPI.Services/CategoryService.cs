@@ -1,34 +1,44 @@
-﻿using System.Collections.Generic;
-using BadApi.Data;
+﻿using BadApi.Data;
 using BadApi.Repositories;
 using BadAPI.Data.Entities;
-using System.Text;
-using System.Threading;
+using BadAPI.Data.Repositories;
+using System.Collections.Generic;
 using System.Runtime;
 using System.Security;
+using System.Text;
+using System.Threading;
 using System.Timers;
 
 namespace BadApi.Services
 {
     public class CategoryService
     {
-        private CategoryRepository _repo = new CategoryRepository();
+        private readonly IRepository<Category> _repo;
+        private readonly IUnitOfWork _unitOfWork;
 
-        // Business rule: Name cannot be empty
-        public string AddCategory(Category category)
+        public CategoryService(IRepository<Category> repo, IUnitOfWork unitOfWork)
+        {
+            _repo = repo;
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<string> AddCategoryAsync(Category category)
         {
             if (string.IsNullOrEmpty(category.Name))
             {
                 return "Category name is required";
             }
 
-            _repo.Add(category);
+            await _repo.AddAsync(category);
+
+            await _unitOfWork.CompleteAsync();
+
             return "Category added";
         }
 
-        public List<Category> GetCategories()
+        public async Task<IEnumerable<Category>> GetCategoriesAsync()
         {
-            return _repo.GetAll();
+            return await _repo.GetAllAsync();
         }
     }
 }

@@ -8,14 +8,19 @@ namespace BadApi.Repositories
 {
     public class CategoryRepository
     {
-        private BadDbContext _context = new BadDbContext();
+        private readonly BadDbContext _context;
+
+        public CategoryRepository(BadDbContext context)
+        {
+            _context = context;
+        }
 
         public List<Category> GetAll()
         {
             return _context.Set<Category>().ToList();
         }
 
-        public Category GetById(int id)
+        public Category? GetById(Guid id)
         {
             return _context.Set<Category>().FirstOrDefault(c => c.Id == id);
         }
@@ -37,7 +42,7 @@ namespace BadApi.Repositories
             }
         }
 
-        public void Delete(int id)
+        public void Delete(Guid id)
         {
             var c = _context.Set<Category>().FirstOrDefault(x => x.Id == id);
             if (c != null)

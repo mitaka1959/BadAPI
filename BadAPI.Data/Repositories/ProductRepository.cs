@@ -8,14 +8,19 @@ namespace BadApi.Repositories
 {
     public class ProductRepository
     {
-        private BadDbContext _context = new BadDbContext();
+        private readonly BadDbContext _context;
+
+        public ProductRepository(BadDbContext context)
+        {
+            _context = context;
+        }
 
         public List<Product> GetAll()
         {
             return _context.Products.ToList();
         }
 
-        public Product GetById(int id)
+        public Product? GetById(Guid id)
         {
             return _context.Products.FirstOrDefault(x => x.Id == id);
         }
@@ -33,15 +38,13 @@ namespace BadApi.Repositories
             {
                 p.Name = product.Name;
                 p.Price = product.Price;
-
                 p.CategoryId = product.CategoryId;
-                p.CategoryName = product.CategoryName;
 
                 _context.SaveChanges();
             }
         }
 
-        public void Delete(int id)
+        public void Delete(Guid id)
         {
             var p = _context.Products.FirstOrDefault(x => x.Id == id);
             if (p != null)

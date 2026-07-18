@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using BadApi.Services;
+﻿using BadApi.Data;
 using BadApi.Repositories;
-using BadApi.Data;
+using BadApi.Services;
 using BadAPI.Data.Entities;
-using System.Text;
-using System.Threading;
+using BadAPI.DTOs;
+using Microsoft.AspNetCore.Mvc;
 using System.Runtime;
 using System.Security;
+using System.Text;
+using System.Threading;
 using System.Timers;
 
 namespace BadApi.Controllers
@@ -15,71 +16,41 @@ namespace BadApi.Controllers
     [Route("api/[controller]")]
     public class CategoriesController : ControllerBase
     {
-        private CategoryService _service = new CategoryService();
-        private CategoryRepository _repo = new CategoryRepository();
+        private readonly CategoryService _service;
+
+       
+        public CategoriesController(CategoryService service)
+        {
+            _service = service;
+        }
 
         [HttpGet]
-        public ActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            var categories = _service.GetCategories();
+            
+            var categories = await _service.GetCategoriesAsync();
+
             return Ok(categories);
         }
 
-        [HttpGet("{id}")]
-        public ActionResult Get(int id)
-        {
-            var category = _repo.GetById(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            if (category.Description != null && category.Description.Length > 100)
-            {
-                return Ok(new { category.Id, category.Name, Note = "Long description" });
-            }
-
-            return Ok(category);
-        }
-
         [HttpPost]
-        public ActionResult Post(Category category)
+        public async Task<IActionResult> Post([FromBody] CategoryCreateDto dto)
         {
-            var result = _service.AddCategory(category);
-            if (result == "Category name is required")
-                return BadRequest(result);
+        
+            var newCategory = new Category
+            {
+                Name = dto.Name,
+                Description = dto.Description
+            };
 
-            return Ok(result);
-        }
+            var result = await _service.AddCategoryAsync(newCategory);
 
-        [HttpPut("{id}")]
-        public ActionResult Put(int id, Category category)
-        {
-            if (id != category.Id)
-                return BadRequest("Id mismatch");
+            if (result == "Category added")
+            {
+                return Ok(new { message = result });
+            }
 
-            var existing = _repo.GetById(id);
-            if (existing == null)
-                return NotFound();
-
-            existing.Name = category.Name;
-            existing.Description = category.Description;
-
-            _repo.Update(existing);
-
-            return Ok("Updated");
-        }
-
-        [HttpDelete("{id}")]
-        public ActionResult Delete(int id)
-        {
-            var category = _repo.GetById(id);
-            if (category == null)
-                return NotFound();
-
-            _repo.Delete(id);
-
-            return Ok("Deleted");
+            return BadRequest(new { message = result });
         }
     }
 }

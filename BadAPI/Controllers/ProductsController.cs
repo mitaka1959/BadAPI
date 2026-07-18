@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using BadApi.Services;
+﻿using BadApi.Data;
 using BadApi.Repositories;
-using BadApi.Data;
+using BadApi.Services;
 using BadAPI.Data.Entities;
-using System.Text;
-using System.Threading;
+using BadAPI.DTOs;
+using Microsoft.AspNetCore.Mvc;
 using System.Runtime;
 using System.Security;
+using System.Text;
+using System.Threading;
 using System.Timers;
 
 namespace BadApi.Controllers
@@ -15,78 +16,52 @@ namespace BadApi.Controllers
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
-        private ProductService _service = new ProductService();
-        private ProductRepository _repo = new ProductRepository();
+        private readonly ProductService _service;
 
-        [HttpGet]
-        public ActionResult Get()
+        public ProductsController(ProductService service)
         {
-            var products = _service.GetProducts();
-            return Ok(products);
+            _service = service;
         }
 
-        [HttpGet("{id}")]
-        public ActionResult Get(int id)
+        [HttpGet]
+        public async Task<IActionResult> Get()
         {
-            var product = _repo.GetById(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            if (product.Price > 50)
-            {
-                return Ok(new { product.Id, product.Name, Discount = "10%" });
-            }
-
-            return Ok(product);
+            var products = await _service.GetProductsAsync();
+            return Ok(products); 
         }
 
         [HttpPost]
-        public ActionResult Post(Product p)
+        public async Task<IActionResult> Post([FromBody] ProductCreateDto dto)
         {
-            var result = _service.AddProduct(p);
-            if (result == "Price must be greater than zero")
-                return BadRequest(result);
+            var newProduct = new Product
+            {
+                Name = dto.Name,
+                Price = dto.Price,
+                CategoryName = dto.CategoryName
+            };
 
-            return Ok(result);
-        }
+            var result = await _service.AddProductAsync(newProduct);
 
-        [HttpPut("{id}")]
-        public ActionResult Put(int id, Product p)
-        {
-            if (id != p.Id)
-                return BadRequest("Id mismatch");
+            if (result == "Product added successfully")
+            {
+                return Ok(new { message = result });
+            }
 
-            if (p.Price <= 0)
-                return BadRequest("Invalid price");
-
-            var existingProduct = _repo.GetById(id);
-            if (existingProduct == null)
-                return NotFound();
-
-            existingProduct.Name = p.Name;
-            existingProduct.Price = p.Price;
-            existingProduct.CategoryId = p.CategoryId;
-            existingProduct.CategoryName = p.CategoryName;
-
-            _repo.Update(existingProduct);
-
-            return Ok("Updated");
+            return BadRequest(new { message = result });
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var result = _service.DeleteProduct(id);
+            var result = await _service.DeleteProductAsync(id);
+
+            if (result == "Deleted")
+                return Ok(new { message = result });
 
             if (result == "Product not found")
-                return NotFound(result);
+                return NotFound(new { message = result }); 
 
-            if (result == "Cannot delete expensive products")
-                return BadRequest(result);
-
-            return Ok(result);
+            return BadRequest(new { message = result });
         }
     }
 }
