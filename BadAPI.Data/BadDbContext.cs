@@ -10,22 +10,21 @@ namespace BadApi.Data
 {
     public class BadDbContext : DbContext
     {
-        public DbSet<Product> Products { get; set; }
-        public DbSet<Category> Categories { get; set; }
-
-        public BadDbContext()
-        {
-        }
+        public DbSet<Product> Products { get; set; } = null!;
+        public DbSet<Category> Categories { get; set; } = null!;
 
         public BadDbContext(DbContextOptions<BadDbContext> options)
-            :base(options)
+            : base(options)
         {
-            
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            optionsBuilder.UseSqlServer("Server=.;Database=BadApiDb;Trusted_Connection=True;TrustServerCertificate=True;");
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasColumnType("decimal(18,2)");
         }
     }
 }
